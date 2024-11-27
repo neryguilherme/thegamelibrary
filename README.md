@@ -2,3 +2,6 @@ Esse repósitorio pertence ao Grupo 7 da disciplina de Projeto Interdisciplinar 
 O Grupo 7 é composto por Guilherme Rocha, Rhwan Lucena, Caio Silva, Vinícius Teixeira e Artur Chaves
 
 O Projeto tem o objetivo de criar a "The Game Library" uma aplicação que analisa os jogos favoritos inseridos pelo usuário e recomenda novos jogos de genero parecido aos favoritos para o usuário jogar. Também é feita uma pequena avaliação do Sistema Operacional (e.g. Windows, Linux, Mac) do usuário para saber quais jogos são compatíveis com o SO do usuário
+
+Link para download do Dataset:
+https://drive.google.com/file/d/1UvSBIyxLTakjLPUMCkrTlBiMHWk72zMg/view?usp=sharing
