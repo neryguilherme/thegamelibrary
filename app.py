@@ -1,7 +1,5 @@
-import kagglehub
 import streamlit as st
 import pandas as pd
-import numpy as np
 import plotly.express as px
 import os
 
@@ -10,11 +8,11 @@ st.title("Análise de Dados de Jogos da Steam")
 st.write("Aplicativo para explorar e analisar os dados de jogos da Steam.")
 
 
-path = kagglehub.dataset_download("mexwell/steamgames")
-caminho_csv = os.path.join(path, 'games.csv')
+#É preciso colocar o caminho correto do arquivo .parquet
+path = os.getcwd()
+caminho_parquet = os.path.join(path, 'games.parquet')
 
-
-df = pd.read_csv(caminho_csv)
+df = pd.read_parquet(caminho_parquet)
 
 # Pré-processamento de dados
 df['Release date'] = pd.to_datetime(df['Release date'], errors='coerce')
