@@ -1,9 +1,10 @@
 import pandas as pd
+
 from sklearn.feature_extraction.text import TfidfVectorizer
 #from sklearn.metrics.pairwise import cosine_similarity
 
 
-dataset = pd.read_csv('games.csv', encoding='utf-8')
+dataset = pd.read_parquet('games.parquet')
 
 def fill_empty_val(orig_data: pd.DataFrame) -> pd.DataFrame:
     # Preencher valores ausentes nas colunas relevantes com strings vazias
@@ -25,7 +26,7 @@ def ask_preferences() -> tuple[str]:
 
     return platform_preference, category_preference, genre_preference, tag_preference
 
-def give_recommendation(data: pd.DataFrame, plat_pref: str, categ_pref: str, genre_pref: str, tag_pref: str) -> None:
+def pref_recomm(data: pd.DataFrame, plat_pref: str, categ_pref: str, genre_pref: str, tag_pref: str) -> None:
     # Filtrar o dataset com base nas preferências do usuário
     filtered_data = data[
         (data[plat_pref] == True) &  
@@ -47,19 +48,22 @@ def give_recommendation(data: pd.DataFrame, plat_pref: str, categ_pref: str, gen
 
         # Ordenar as recomendações por popularidade (Recomendations)
         recommendations = filtered_data.sort_values(by='Recommendations', ascending=False).head(10)
-
+        recomm_list = []
+        
         # Exibir apenas os nomes dos jogos recomendados
         print("\nJogos recomendados:")
         for index, row in recommendations.iterrows():
             print(row['Name'])
-    return
+            recomm_list.append(row['Name'])
+
+    return recomm_list
 
 def main():
     global dataset
     data = fill_empty_val(dataset)
     user_pref = ask_preferences()
     uplat_pref, ucat_pref, ugenre_pref, utag_pref = user_pref[0], user_pref[1], user_pref[2], user_pref[3]
-    give_recommendation(data, uplat_pref, ucat_pref, ugenre_pref, utag_pref)
+    pref_recomm(data, uplat_pref, ucat_pref, ugenre_pref, utag_pref)
 
 
 main()
