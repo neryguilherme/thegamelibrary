@@ -4,7 +4,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 import random
 
 # Carregar o dataset
-data = pd.read_csv('games.csv', encoding='utf-8')
+data = pd.read_parquet('games.parquet', encoding='utf-8')
 
 # Preencher valores ausentes
 data['Genres'] = data['Genres'].fillna("")
@@ -15,8 +15,8 @@ data['Combined_Features'] = data['Combined_Features'].fillna("")
 data['Recomendations'] = data['Recomendations'].fillna(0)
 
 # Criar um conjunto de 5 jogos aleatórios de gêneros diferentes
-genres = data['Genres'].str.split(',').explode().unique()  # Lista de gêneros únicos
-random_genres = random.sample(list(genres), 5)  # Selecionar 5 gêneros aleatórios
+unique_genres = data['Genres'].str.split(',').explode().unique()  # Lista de gêneros únicos
+random_genres = random.sample(list(unique_genres), 5)  # Selecionar 5 gêneros aleatórios
 
 # Selecionar um jogo aleatório para cada gênero
 random_games = []
@@ -55,3 +55,9 @@ for i in range(1, len(similar_games)):  # Começa em 1 para evitar recomendar o 
     count += 1
     if count == 5:
         break
+
+def main():
+    global data
+
+if __name__ == "__main__":
+    main()
