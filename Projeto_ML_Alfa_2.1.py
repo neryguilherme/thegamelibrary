@@ -1,10 +1,36 @@
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-import random
+from random import sample
+import os
 
 
-dataset = pd.read_parquet('games.parquet')
+def load_data():
+    caminho_parquet = os.path.join( os.getcwd(), 'games.parquet')
+    
+    if not os.path.exists(caminho_parquet):
+        print("Arquivo games.parquet não encontrado no diretório atual.")
+        return pd.DataFrame()
+
+    # Colunas necessárias para análise
+    colunas_necessarias = [
+        "Name", "Release date", "Price", "User score", "Genres", 
+        "Windows", "Mac", "Linux", 'Tags', 'Categories', 'Recommendations'
+    ]
+    
+    # Carregar apenas as colunas necessárias
+    df = pd.read_parquet(caminho_parquet, columns=colunas_necessarias)
+    
+    # Pré-processamento de dados
+    df['Release date'] = pd.to_datetime(df['Release date'], errors='coerce')
+    df['Price'] = df['Price'].fillna(0)
+    df['User score'] = df['User score'].fillna(0)
+    df['Genres'] = df['Genres'].fillna("Sem Genero")
+    
+    # Remover linhas duplicadas baseando-se na coluna 'Name' e mantendo somente a primeira ocorrência
+    df = df.drop_duplicates(subset=['Name'], keep='first')
+    
+    return df
 
 
 def fill_empty_val(orig_data: pd.DataFrame) -> pd.DataFrame:
@@ -30,7 +56,7 @@ def ask_preferences() -> tuple[str]:
 def pref_recomm(data: pd.DataFrame, plat_pref: str, categ_pref: str, genre_pref: str, tag_pref: str) -> None:
     # Filtrar o dataset com base nas preferências do usuário
     filtered_data = data[
-        (data[plat_pref] == True) &  
+        (data[plat_pref] == True) &  # noqa: E712
         (data['Categories'].str.contains(categ_pref, case=False)) &
         (data['Genres'].str.contains(genre_pref, case=False) if genre_pref else True) &
         (data['Tags'].str.contains(tag_pref, case=False) if tag_pref else True)
@@ -63,7 +89,7 @@ def pref_recomm(data: pd.DataFrame, plat_pref: str, categ_pref: str, genre_pref:
 def show_rand_games(data: pd.DataFrame) -> list[object]:
     # Criar um conjunto de 5 jogos aleatórios de gêneros diferentes
     unique_genres = data['Genres'].str.split(',').explode().unique()  # Lista de gêneros únicos
-    random_genres = random.sample(list(unique_genres), 5)  # Selecionar 5 gêneros aleatórios
+    random_genres = sample(list(unique_genres), 5)  # Selecionar 5 gêneros aleatórios
 
     # Selecionar um jogo aleatório para cada gênero
     random_games = []
@@ -120,7 +146,7 @@ def recom_five_games(data: pd.DataFrame, chosen_game: object)-> list[str]:
     return list_recom
 
 def main():
-    global dataset
+    dataset = load_data()
     data = fill_empty_val(dataset)
     user_pref = ask_preferences()
     uplat_pref, ucat_pref, ugenre_pref, utag_pref = user_pref[0], user_pref[1], user_pref[2], user_pref[3]
