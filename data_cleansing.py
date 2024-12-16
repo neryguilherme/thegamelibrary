@@ -15,7 +15,7 @@ def clean_data(df: pd.DataFrame):
     """Realiza o processo de limpeza de dados."""
 
     # Remover as colunas que nao sao utilizadas 
-    l_columns = ['AppID', 'Peak CCU', 'Required age', 'DLC count', 'About the game', 'Reviews', 'Website', 'Support url',
+    l_columns = ['AppID', 'Peak CCU', 'DLC count', 'About the game', 'Reviews', 'Website', 'Support url',
                  'Support email', 'Metacritic score', 'Metacritic url', 'Score rank', 'Notes', 'Developers', 'Publishers', 
                  'Screenshots','Movies']
     
