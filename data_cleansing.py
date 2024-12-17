@@ -14,14 +14,12 @@ def load_data():
 def clean_data(df: pd.DataFrame):
     """Realiza o processo de limpeza de dados."""
 
-    # Remover as colunas que nao sao utilizadas 
     l_columns = ['AppID', 'Peak CCU', 'DLC count', 'About the game', 'Reviews', 'Website', 'Support url',
                  'Support email', 'Metacritic score', 'Metacritic url', 'Score rank', 'Notes', 'Developers', 'Publishers', 
                  'Screenshots','Movies']
     
     df = df.drop(columns= l_columns, axis=1)
 
-    # Remover duplicatas
     df = df.drop_duplicates(subset=["Name"], keep='first')
 
     # Preencher valores numéricos ausentes com 0
@@ -31,10 +29,8 @@ def clean_data(df: pd.DataFrame):
     for col in df.select_dtypes(include=['float64']).columns:
         df[col] = df[col].fillna(0.0)
 
-    # Verificar tipos de dados e corrigir se necessário
-    # Transformar coluna de data para datetime
-    df['Release date'] = pd.to_datetime(df['Release date'], errors='coerce')  
-    df['Genres'] = df['Genres'].apply(lambda x: x.split(',') if isinstance(x, str) else [])
+    #df['Release date'] = pd.to_datetime(df['Release date'], errors='coerce')  
+    #df['Genres'] = df['Genres'].apply(lambda x: x.split(',') if isinstance(x, str) else [])
 
     # Filtrar dados inválidos (exemplo: valores negativos em colunas específicas)
     numeric_cols = df.select_dtypes(include=['float64', 'int64']).columns
