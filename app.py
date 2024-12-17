@@ -9,7 +9,7 @@ st.write("Aplicativo para explorar e analisar os dados de jogos da Steam.")
 
 # Carregar o arquivo .parquet
 path = os.getcwd()
-caminho_parquet = os.path.join(path, 'games.parquet')
+caminho_parquet = os.path.join(path, 'games_cleaned.parquet')
 
 df = pd.read_parquet(caminho_parquet)
 
