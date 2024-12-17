@@ -29,14 +29,6 @@ def clean_data(df: pd.DataFrame):
     for col in df.select_dtypes(include=['float64']).columns:
         df[col] = df[col].fillna(0.0)
 
-    #df['Release date'] = pd.to_datetime(df['Release date'], errors='coerce')  
-    #df['Genres'] = df['Genres'].apply(lambda x: x.split(',') if isinstance(x, str) else [])
-
-    # Filtrar dados inválidos (exemplo: valores negativos em colunas específicas)
-    numeric_cols = df.select_dtypes(include=['float64', 'int64']).columns
-    for col in numeric_cols:
-        df[df[col] < 0] = 0
-
     return df
 
 def save_data(df: pd.DataFrame):
