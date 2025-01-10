@@ -3,7 +3,6 @@ import pandas as pd
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 
-# Carregar o arquivo Parquet
 @st.cache_data
 def load_data(file_path):
     return pd.read_parquet(file_path)
@@ -24,7 +23,6 @@ def generate_wordcloud(text_data, title):
     ax.set_title(title, fontsize=16)
     st.pyplot(fig)
 
-# Configuração da interface
 st.title("Análise de Tags e Gêneros de Jogos")
 st.write("Visualização das tags e gêneros mais frequentes usando uma nuvem de palavras.")
 
