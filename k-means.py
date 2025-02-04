@@ -32,7 +32,7 @@ def silhouette_method(data, max_k=10):
 # Função para rodar o K-Means
 def run_kmeans(data, n_clusters):
     kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init=10)
-    data["Cluster"] = kmeans.fit_predict(data)
+    data["Cluster"] = kmeans.fit_predict(df_scaled)
     return data, kmeans
 
 st.title("Clusterização de Jogos (Preço x Avaliações Positivas)")
