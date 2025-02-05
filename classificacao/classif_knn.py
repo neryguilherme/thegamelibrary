@@ -145,7 +145,7 @@ def prepare_target(y: pd.Series) -> pd.Series:
     # Encode categorical values if the target is categorical
     if pd.api.types.is_object_dtype(y_processed) or pd.api.types.is_categorical_dtype(y_processed):
         label_encoder = LabelEncoder()
-        y_processed = label_encoder.fit_transform(y_processed)
+        y_processed = pd.Series(label_encoder.fit_transform(y_processed), index=y_processed.index)
 
     return y_processed
 
@@ -413,7 +413,7 @@ def main(parquet_file: str, target_column: str) -> None:
 
 if __name__ == "__main__":
     parquet_file_path = "games.parquet"
-    target_column_name = "Positive"
-    
+    target_column_name = "Genres"
+
     
     main(parquet_file_path, target_column_name)
