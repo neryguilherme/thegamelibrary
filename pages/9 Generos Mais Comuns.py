@@ -29,27 +29,21 @@ def main():
     # Carregar os dados
     df = load_data(FILE_PATH)
 
-    # Mostrar as primeiras linhas do dataset
-    st.write("Visualizando os primeiros registros do dataset:")
-    st.dataframe(df.head())
-
     # Verificar se a coluna 'Genres' existe no dataset
     if 'Genres' in df.columns:
         # Obter gêneros únicos
         unique_genres = get_unique_genres(df, "Genres")
         st.subheader(f"Número total de gêneros únicos: {len(unique_genres)}")
-        st.write("Alguns gêneros únicos encontrados:")
-        st.write(list(unique_genres)[:10])  # Mostra apenas os primeiros 10 para não poluir a tela
 
         # Contar os gêneros mais frequentes (considerando separação por vírgula)
         all_genres_list = []
         df['Genres'].dropna().astype(str).apply(lambda x: all_genres_list.extend(x.split(',')))  # Criamos uma lista com todos os gêneros
-        genre_counts = pd.Series(all_genres_list).str.strip().value_counts().head(4)  # Contamos os mais frequentes
+        genre_counts = pd.Series(all_genres_list).str.strip().value_counts().head(10)  # Contamos os mais frequentes
 
         # Criar gráfico de barras horizontal
         fig, ax = plt.subplots(figsize=(8, 5))
         genre_counts.plot(kind='barh', color='skyblue', ax=ax)  # Gráfico horizontal
-        ax.set_title("Top 4 Gêneros mais Frequentes")
+        ax.set_title("Top 10 Gêneros mais Frequentes")
         ax.set_ylabel("Gêneros")
         ax.set_xlabel("Frequência")
         st.pyplot(fig)  # Exibir o gráfico no Streamlit
