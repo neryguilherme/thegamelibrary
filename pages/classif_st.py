@@ -1,12 +1,14 @@
 import pandas as pd
 import streamlit as st
 import re 
+import sys
 import prediction as pred
 import matplotlib.pyplot as plt
 from collections import Counter
 
 # Carregar o dataset Parquet
-df = pd.read_parquet("../games.parquet")
+file_path = sys.path.append("../games.parquet")
+df = pd.read_parquet(file_path)
 
 # Obter valores únicos da coluna "Supported languages"
 supported_languages = []
