@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from collections import Counter
 
 # Carregar o dataset Parquet
-df = pd.read_parquet("..\games.parquet")
+df = pd.read_parquet(r"..\games.parquet")
 
 # Obter valores únicos da coluna "Supported languages"
 supported_languages = []
