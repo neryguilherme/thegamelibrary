@@ -1,6 +1,6 @@
+import os
 import pandas as pd
 import numpy as np
-import sys
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
@@ -55,7 +55,9 @@ def run_rf(X, y, label_encoders):
     
 
 def prediction(min_price, max_price, tag, category, language):
-    file_path = sys.path.append("../games_preprocessed.parquet")
+    path = os.getcwd()
+    file_path = os.path.join(path, 'games.parquet')
+
     database = pd.read_parquet(file_path)
 
     data_filtered = filter_data(database, min_price, max_price, tag, category, language)

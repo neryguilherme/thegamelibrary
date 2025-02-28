@@ -7,8 +7,14 @@ import matplotlib.pyplot as plt
 from collections import Counter
 
 # Carregar o dataset Parquet
-file_path = sys.path.append("../games.parquet")
-df = pd.read_parquet(file_path)
+FILE_PATH = "games.parquet"
+
+# Função para carregar os dados com cache
+@st.cache_data
+def load_data(file_path):
+    return pd.read_parquet(file_path)
+
+df = load_data(FILE_PATH)
 
 # Obter valores únicos da coluna "Supported languages"
 supported_languages = []
