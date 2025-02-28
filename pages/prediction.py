@@ -54,7 +54,7 @@ def run_rf(X, y, label_encoders):
     
 
 def prediction(min_price, max_price, tag, category, language):
-    database = pd.read_parquet(r'..\games_preprocessed.parquet')
+    database = pd.read_parquet('../games_preprocessed.parquet')
 
     data_filtered = filter_data(database, min_price, max_price, tag, category, language)
     X, y, label_enc = process_data(data_filtered)
