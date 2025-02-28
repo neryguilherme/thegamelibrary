@@ -1,20 +1,19 @@
 import pandas as pd
 import streamlit as st
 import re 
-import sys
+import os
 import prediction as pred
 import matplotlib.pyplot as plt
 from collections import Counter
 
 # Carregar o dataset Parquet
-FILE_PATH = "games.parquet"
+
 
 # Função para carregar os dados com cache
-@st.cache_data
-def load_data(file_path):
-    return pd.read_parquet(file_path)
+path = os.getcwd()
+file_path = os.path.join(path,"games.parquet")
 
-df = load_data(FILE_PATH)
+df = pd.read_parquet(file_path)
 
 # Obter valores únicos da coluna "Supported languages"
 supported_languages = []

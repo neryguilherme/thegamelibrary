@@ -56,7 +56,7 @@ def run_rf(X, y, label_encoders):
 
 def prediction(min_price, max_price, tag, category, language):
     path = os.getcwd()
-    file_path = os.path.join(path, 'games.parquet')
+    file_path = os.path.join(path, 'games_preprocessed.parquet')
 
     database = pd.read_parquet(file_path)
 
