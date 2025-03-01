@@ -92,6 +92,7 @@ if st.button("Aplicar Filtros"):
     ax.set_ylabel('Categorias')
     ax.set_xlabel('Porcentagem (%)')
     ax.set_title('Frequência de Categorias na Previsão (Porcentagem)')
+    ax.set_xlim(0, 100)  # Definir limite de 0 a 100 na barra de porcentagem
 
     # Exibir gráfico no Streamlit
     st.pyplot(fig)
