@@ -15,14 +15,17 @@ banco = pd.read_parquet('/content/games_preprocessed.parquet')
 def process_genres(genres_str):
     if not isinstance(genres_str, str):
         return "Outros"
-
-    genres = set(genres_str.split(','))  # Usando conjunto para evitar duplicatas
+    
+    # Remove espaços em branco e usa conjunto para evitar duplicatas
+    genres = set(g.strip() for g in genres_str.split(','))
     valid_genres = {"Indie", "Action", "Casual"}
     
-    filtered_genres = sorted(valid_genres.intersection(genres))  # Mantém apenas os gêneros desejados
+    # Mantém apenas os gêneros válidos, ordenados alfabeticamente
+    filtered_genres = sorted(valid_genres.intersection(genres))
+    # Se houver gêneros que não são válidos, adiciona "Outros"
     if len(filtered_genres) < len(genres):
-        filtered_genres.append("Outros")  # Se houver outros gêneros, adiciona "Outros"
-
+        filtered_genres.append("Outros")
+    
     return ", ".join(filtered_genres)
 
 banco['Genres'] = banco['Genres'].apply(process_genres)
@@ -61,9 +64,9 @@ xgb_model = xgb.XGBClassifier(
     num_class=len(np.unique(y_train)),
     random_state=42,
     learning_rate=0.1,  # Reduzindo taxa de aprendizado para melhor generalização
-    max_depth=6,        # Controla complexidade do modelo
+    max_depth=15,        # Controla complexidade do modelo
     n_estimators=150,   # Mais estimadores podem melhorar o desempenho
-    subsample=0.8,      # Amostragem para reduzir overfitting
+    subsample=0.4,      # Amostragem para reduzir overfitting
     colsample_bytree=0.8
 )
 
@@ -89,10 +92,9 @@ print_metrics(y_train, y_pred_train, "Treinamento")
 print_metrics(y_test, y_pred_test, "Teste")
 
 # Matriz de Confusão
-plt.figure(figsize=(8,6))
+plt.figure(figsize=(8,8))
 sns.heatmap(confusion_matrix(y_test, y_pred_test), annot=True, cmap='Blues', fmt='d')
 plt.xlabel("Previsto")
 plt.ylabel("Real")
 plt.title("Matriz de Confusão XGBoost")
 plt.show()
-# ... (Rest of your code) ...
