@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
+import xgboost as xgb
 
 
 def filter_data(data, min_price, max_price, tag, category, language):
@@ -40,19 +40,29 @@ def process_data(dataset):
 
     return x_column, k, label_encoders
 
-def run_rf(X, y, label_encoders):
+
+def run_xgb(X, y, label_encoders):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
-    rf_model = RandomForestClassifier(n_estimators=100, max_depth=30, min_samples_split=10, min_samples_leaf=4, max_features='sqrt', random_state=42)
-    
-    rf_model.fit(X_train, y_train)
+    xgb_model = xgb.XGBClassifier(
+        objective='multi:softmax',
+        num_class=len(np.unique(y_train)),
+        random_state=42,
+        learning_rate=0.1,  # Reduzindo taxa de aprendizado para melhor generalização
+        max_depth=15,        # Controla complexidade do modelo
+        n_estimators=150,   # Mais estimadores podem melhorar o desempenho
+        subsample=0.4,      # Amostragem para reduzir overfitting
+        colsample_bytree=0.8
+    )
 
-    prediction_encoded = rf_model.predict(X_test)
+    # Treinamento do modelo
+    xgb_model.fit(X_train, y_train)
+
+    prediction_encoded = xgb_model.predict(X_test)
     
     prediction = label_encoders['Genres'].inverse_transform(prediction_encoded)
 
     return prediction
-    
 
 def prediction(min_price, max_price, tag, category, language):
     path = os.getcwd()
@@ -63,6 +73,6 @@ def prediction(min_price, max_price, tag, category, language):
     data_filtered = filter_data(database, min_price, max_price, tag, category, language)
     X, y, label_enc = process_data(data_filtered)
 
-    predicted = run_rf(X, y, label_enc)
+    predicted = run_xgb(X, y, label_enc)
 
     return predicted
