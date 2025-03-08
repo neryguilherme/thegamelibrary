@@ -7,6 +7,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, classification_report, confusion_matrix
 import xgboost as xgb
 import seaborn as sns
+from google.colab import files
 
 # Carregar os dados
 banco = pd.read_parquet('/content/games_preprocessed.parquet')
@@ -91,10 +92,32 @@ def print_metrics(y_true, y_pred, dataset_name):
 print_metrics(y_train, y_pred_train, "Treinamento")
 print_metrics(y_test, y_pred_test, "Teste")
 
-# Matriz de Confusão
-plt.figure(figsize=(8,8))
-sns.heatmap(confusion_matrix(y_test, y_pred_test), annot=True, cmap='Blues', fmt='d')
+#Matriz de Confusão com rótulos
+plt.figure(figsize=(6,6))
+genre_labels = label_encoders['Genres'].inverse_transform(np.unique(y_test)) #Obtém os nomes dos gêneros
+cm = confusion_matrix(y_test, y_pred_test)
+sns.heatmap(cm, annot=True, cmap='Blues', fmt='d',
+            xticklabels=genre_labels, yticklabels=genre_labels)
 plt.xlabel("Previsto")
 plt.ylabel("Real")
 plt.title("Matriz de Confusão XGBoost")
+plt.savefig('confusion_matrix_labeled.png') # Salva a figura em um arquivo PNG
+plt.show()
+
+# Baixe a imagem para o seu computador local
+files.download('confusion_matrix_labeled.png')
+
+explainer = shap.TreeExplainer(xgb_model)
+X_test_sample = X_test.sample(random_state=42)
+# Calcula os valores SHAP para o conjunto de teste
+shap_values = explainer.shap_values(X_test, approximate=True)
+
+# Gráfico summary plot de barras (importância média das features)
+shap.summary_plot(shap_values, X_test, plot_type="bar", show=False)
+plt.savefig('shap_summary_bar.png')
+plt.show()
+
+# Gráfico summary plot padrão (distribuição dos impactos das features)
+shap.summary_plot(shap_values, X_test, show=False)
+plt.savefig('shap_summary.png')
 plt.show()

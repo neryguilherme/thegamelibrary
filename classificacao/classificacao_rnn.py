@@ -106,14 +106,10 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 
 # Prepare data for RNN
 # Assuming 'Genres' is already label encoded (k)
-max_words = 1000  # Adjust based on vocabulary size
-tokenizer = Tokenizer(num_words=max_words, oov_token="<OOV>")
-tokenizer.fit_on_texts(x_column['Genres'].astype(str))
-sequences = tokenizer.texts_to_sequences(x_column['Genres'].astype(str))
-padded_sequences = pad_sequences(sequences, padding='post', truncating='post', maxlen=5)
 
 
-X_train_rnn, X_test_rnn, y_train_rnn, y_test_rnn = train_test_split(padded_sequences, k, test_size=0.2, random_state=42)
+
+X_train_rnn, X_test_rnn, y_train_rnn, y_test_rnn = train_test_split(X, k, test_size=0.2, random_state=42)
 
 
 # RNN Model
