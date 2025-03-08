@@ -106,3 +106,18 @@ plt.show()
 
 # Baixe a imagem para o seu computador local
 files.download('confusion_matrix_labeled.png')
+
+explainer = shap.TreeExplainer(xgb_model)
+X_test_sample = X_test.sample(random_state=42)
+# Calcula os valores SHAP para o conjunto de teste
+shap_values = explainer.shap_values(X_test, approximate=True)
+
+# Gráfico summary plot de barras (importância média das features)
+shap.summary_plot(shap_values, X_test, plot_type="bar", show=False)
+plt.savefig('shap_summary_bar.png')
+plt.show()
+
+# Gráfico summary plot padrão (distribuição dos impactos das features)
+shap.summary_plot(shap_values, X_test, show=False)
+plt.savefig('shap_summary.png')
+plt.show()
