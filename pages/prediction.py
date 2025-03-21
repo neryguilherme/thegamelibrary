@@ -4,6 +4,7 @@ import numpy as np
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.model_selection import train_test_split
 import xgboost as xgb
+import pickle
 
 
 def filter_data(data, min_price, max_price, tag, category, language):
@@ -18,46 +19,56 @@ def filter_data(data, min_price, max_price, tag, category, language):
     print(data.shape)
     return data
 
-def process_data(dataset):
-    databank = dataset.copy()
+def process_genres(genres_str):
+    if not isinstance(genres_str, str):
+        return "Outros"
+    
+    genres = set(g.strip() for g in genres_str.split(','))
+    valid_genres = {"Indie", "Action", "Casual"}
+    
+    filtered_genres = sorted(valid_genres.intersection(genres))
+    if len(filtered_genres) < len(genres):
+        filtered_genres.append("Outros")
+    
+    return ", ".join(filtered_genres)
 
-    label_encoders = {}
-    x_column = databank.copy()
-    for column in x_column.select_dtypes(include=['object']).columns:
-        le = LabelEncoder()
-        x_column[column] = le.fit_transform(x_column[column])
-        label_encoders[column] = le
+def process_data(dataset):
+    x_column = dataset.copy()
+    
+    x_column['Genres'] = x_column['Genres'].apply(process_genres)
+    label_encoders2 = {}
+
+    for filename in os.listdir('label_encoders'):
+        if filename.endswith('.pkl'):
+            key = filename[:-4]  # Remove '.pkl' para obter o nome da chave
+            filepath = os.path.join('label_encoders', filename)
+            with open(filepath, 'rb') as f:
+                label_encoders2[key] = pickle.load(f)
+    
+    for column_name, encoder3 in label_encoders2.items():
+        if column_name in x_column.columns:
+            x_column[column_name] = encoder3.transform(x_column[column_name])
     
     k = x_column['Genres']
-    databank = x_column.drop(columns= ['Genres'])
+    x_column = x_column.drop(columns= ['Genres'])
 
     scaler = StandardScaler()
     numerical_cols = x_column.select_dtypes(include=['number']).columns
-    databank[numerical_cols] = scaler.fit_transform(x_column[numerical_cols])
+    x_column[numerical_cols] = scaler.fit_transform(x_column[numerical_cols])
 
     le = LabelEncoder()
     k = le.fit_transform(k)
 
-    return x_column, k, label_encoders
+    return x_column, k, label_encoders2
 
 
 def run_xgb(X, y, label_encoders):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
-    xgb_model = xgb.XGBClassifier(
-        objective='multi:softmax',
-        num_class=len(np.unique(y_train)),
-        random_state=42,
-        learning_rate=0.1,  # Reduzindo taxa de aprendizado para melhor generalização
-        max_depth=15,        # Controla complexidade do modelo
-        n_estimators=150,   # Mais estimadores podem melhorar o desempenho
-        subsample=0.4,      # Amostragem para reduzir overfitting
-        colsample_bytree=0.8
-    )
-
-    # Treinamento do modelo
-    xgb_model.fit(X_train, y_train)
-
+    path = os.getcwd()
+    xgb_model_path = os.path.join(path, 'xgb_model.pkl')
+    xgb_model = pickle.load(open(xgb_model_path, 'rb'))
+    
     prediction_encoded = xgb_model.predict(X_test)
     
     prediction = label_encoders['Genres'].inverse_transform(prediction_encoded)
