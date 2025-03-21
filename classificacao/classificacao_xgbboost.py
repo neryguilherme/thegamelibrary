@@ -8,6 +8,7 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 import xgboost as xgb
 import seaborn as sns
 from google.colab import files
+import pickle
 
 # Carregar os dados
 banco = pd.read_parquet('/content/games_preprocessed.parquet')
@@ -16,20 +17,21 @@ banco = pd.read_parquet('/content/games_preprocessed.parquet')
 def process_genres(genres_str):
     if not isinstance(genres_str, str):
         return "Outros"
-    
+
     # Remove espaços em branco e usa conjunto para evitar duplicatas
     genres = set(g.strip() for g in genres_str.split(','))
     valid_genres = {"Indie", "Action", "Casual"}
-    
+
     # Mantém apenas os gêneros válidos, ordenados alfabeticamente
     filtered_genres = sorted(valid_genres.intersection(genres))
     # Se houver gêneros que não são válidos, adiciona "Outros"
     if len(filtered_genres) < len(genres):
         filtered_genres.append("Outros")
-    
+
     return ", ".join(filtered_genres)
 
 banco['Genres'] = banco['Genres'].apply(process_genres)
+banco['Genres']
 
 # Preenchimento de valores ausentes (otimizado)
 for col in banco.columns:
@@ -46,6 +48,12 @@ for column in x_column.select_dtypes(include=['object']).columns:
     le = LabelEncoder()
     x_column[column] = le.fit_transform(x_column[column])
     label_encoders[column] = le
+
+for label in label_encoders:
+  local_path = f'/content/label_encoders/{label}.pkl'
+  with open(local_path, 'wb') as model_file:
+    pickle.dump(label_encoders[label], model_file)
+
 
 # Definição de X (features) e y (target)
 X = x_column.drop(columns=['Genres']).copy()
@@ -74,11 +82,13 @@ xgb_model = xgb.XGBClassifier(
 # Treinamento do modelo
 xgb_model.fit(X_train, y_train)
 
+local_path = '/content/xgb_model.pkl'
+with open(local_path, 'wb') as model_file:
+  pickle.dump(xgb_model, model_file)
+
 # Previsões
 y_pred_train = xgb_model.predict(X_train)
 y_pred_test = xgb_model.predict(X_test)
-
-
 
 # Métricas
 def print_metrics(y_true, y_pred, dataset_name):
