@@ -9,6 +9,7 @@ import xgboost as xgb
 import seaborn as sns
 from google.colab import files
 import pickle
+from imblearn.over_sampling import SMOTE  # Importando o SMOTE
 
 # Carregar os dados
 banco = pd.read_parquet('/content/games_preprocessed.parquet')
@@ -17,23 +18,16 @@ banco = pd.read_parquet('/content/games_preprocessed.parquet')
 def process_genres(genres_str):
     if not isinstance(genres_str, str):
         return "Outros"
-
-    # Remove espaços em branco e usa conjunto para evitar duplicatas
     genres = set(g.strip() for g in genres_str.split(','))
     valid_genres = {"Indie", "Action", "Casual"}
-
-    # Mantém apenas os gêneros válidos, ordenados alfabeticamente
     filtered_genres = sorted(valid_genres.intersection(genres))
-    # Se houver gêneros que não são válidos, adiciona "Outros"
     if len(filtered_genres) < len(genres):
         filtered_genres.append("Outros")
-
     return ", ".join(filtered_genres)
 
 banco['Genres'] = banco['Genres'].apply(process_genres)
-banco['Genres']
 
-# Preenchimento de valores ausentes (otimizado)
+# Preenchimento de valores ausentes
 for col in banco.columns:
     if banco[col].dtype == 'object':
         banco[col].fillna(banco[col].mode()[0], inplace=True)
@@ -50,32 +44,35 @@ for column in x_column.select_dtypes(include=['object']).columns:
     label_encoders[column] = le
 
 for label in label_encoders:
-  local_path = f'/content/label_encoders/{label}.pkl'
-  with open(local_path, 'wb') as model_file:
-    pickle.dump(label_encoders[label], model_file)
-
+    local_path = f'/content/label_encoders/{label}.pkl'
+    with open(local_path, 'wb') as model_file:
+        pickle.dump(label_encoders[label], model_file)
 
 # Definição de X (features) e y (target)
 X = x_column.drop(columns=['Genres']).copy()
-y = x_column['Genres'].copy()  # Mantém separadamente para evitar conflitos
+y = x_column['Genres'].copy()
+
+# Aplicando SMOTE para balanceamento das classes
+smote = SMOTE(random_state=42)
+X_resampled, y_resampled = smote.fit_resample(X, y)
 
 # Escalonamento dos dados
 scaler = StandardScaler()
-numerical_cols = X.select_dtypes(include=['number']).columns
-X[numerical_cols] = scaler.fit_transform(X[numerical_cols])
+numerical_cols = X_resampled.select_dtypes(include=['number']).columns
+X_resampled[numerical_cols] = scaler.fit_transform(X_resampled[numerical_cols])
 
 # Divisão dos dados em treino e teste
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X_resampled, y_resampled, test_size=0.2, random_state=42)
 
-# Modelo XGBoost com hiperparâmetros ajustados
+# Modelo XGBoost
 xgb_model = xgb.XGBClassifier(
     objective='multi:softmax',
     num_class=len(np.unique(y_train)),
     random_state=42,
-    learning_rate=0.1,  # Reduzindo taxa de aprendizado para melhor generalização
-    max_depth=15,        # Controla complexidade do modelo
-    n_estimators=150,   # Mais estimadores podem melhorar o desempenho
-    subsample=0.4,      # Amostragem para reduzir overfitting
+    learning_rate=0.1,
+    max_depth=15,
+    n_estimators=150,
+    subsample=0.4,
     colsample_bytree=0.8
 )
 
@@ -84,7 +81,7 @@ xgb_model.fit(X_train, y_train)
 
 local_path = '/content/xgb_model.pkl'
 with open(local_path, 'wb') as model_file:
-  pickle.dump(xgb_model, model_file)
+    pickle.dump(xgb_model, model_file)
 
 # Previsões
 y_pred_train = xgb_model.predict(X_train)
@@ -102,32 +99,28 @@ def print_metrics(y_true, y_pred, dataset_name):
 print_metrics(y_train, y_pred_train, "Treinamento")
 print_metrics(y_test, y_pred_test, "Teste")
 
-#Matriz de Confusão com rótulos
+# Matriz de Confusão
 plt.figure(figsize=(6,6))
-genre_labels = label_encoders['Genres'].inverse_transform(np.unique(y_test)) #Obtém os nomes dos gêneros
+genre_labels = label_encoders['Genres'].inverse_transform(np.unique(y_test))
 cm = confusion_matrix(y_test, y_pred_test)
-sns.heatmap(cm, annot=True, cmap='Blues', fmt='d',
-            xticklabels=genre_labels, yticklabels=genre_labels)
+sns.heatmap(cm, annot=True, cmap='Blues', fmt='d', xticklabels=genre_labels, yticklabels=genre_labels)
 plt.xlabel("Previsto")
 plt.ylabel("Real")
 plt.title("Matriz de Confusão XGBoost")
-plt.savefig('confusion_matrix_labeled.png') # Salva a figura em um arquivo PNG
+plt.savefig('confusion_matrix_labeled.png')
 plt.show()
 
-# Baixe a imagem para o seu computador local
 files.download('confusion_matrix_labeled.png')
 
+# SHAP
 explainer = shap.TreeExplainer(xgb_model)
 X_test_sample = X_test.sample(random_state=42)
-# Calcula os valores SHAP para o conjunto de teste
 shap_values = explainer.shap_values(X_test, approximate=True)
 
-# Gráfico summary plot de barras (importância média das features)
 shap.summary_plot(shap_values, X_test, plot_type="bar", show=False)
 plt.savefig('shap_summary_bar.png')
 plt.show()
 
-# Gráfico summary plot padrão (distribuição dos impactos das features)
 shap.summary_plot(shap_values, X_test, show=False)
 plt.savefig('shap_summary.png')
 plt.show()
