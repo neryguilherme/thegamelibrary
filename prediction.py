@@ -105,18 +105,49 @@ def prediction(min_price, max_price, tag, category, language):
 st.title("Predição de Gêneros de Jogos")
 st.markdown("Ajuste os parâmetros para filtrar os dados e preveja os gêneros dos jogos.")
 
+# Carrega o dataset para extrair os valores dos parâmetros
+path = os.getcwd()
+file_path = os.path.join(path, 'games_preprocessed.parquet')
+database = pd.read_parquet(file_path)
+
+# Definindo os limites de preço com base nos dados
+price_min = float(database['Price'].min())
+price_max = float(database['Price'].max())
+
+# Extraindo valores únicos para Tags, Categories e Supported languages
+def extrair_valores_unicos(coluna):
+    # Considerando que os valores podem estar separados por vírgula
+    valores = database[coluna].dropna().apply(lambda x: [v.strip() for v in x.split(',')])
+    # Flatten e removendo duplicatas
+    lista = set([item for sublist in valores for item in sublist])
+    return sorted(lista)
+
+unique_tags = extrair_valores_unicos("Tags")
+unique_categories = extrair_valores_unicos("Categories")
+unique_languages = extrair_valores_unicos("Supported languages")
+
 # Parâmetros de entrada via sidebar
 st.sidebar.header("Parâmetros de Entrada")
-min_price = st.sidebar.number_input("Preço Mínimo", value=0.0, step=1.0)
-max_price = st.sidebar.number_input("Preço Máximo", value=100.0, step=1.0)
-tag = st.sidebar.text_input("Tag", value="")  # Exemplo: "Multiplayer"
-category = st.sidebar.text_input("Categoria", value="")  # Exemplo: "Ação"
-language = st.sidebar.text_input("Idioma Suportado", value="")  # Exemplo: "English"
+
+min_price_input = st.sidebar.number_input("Preço Mínimo", 
+                                            value=price_min, 
+                                            min_value=price_min, 
+                                            max_value=price_max, 
+                                            step=1.0)
+max_price_input = st.sidebar.number_input("Preço Máximo", 
+                                            value=price_max, 
+                                            min_value=price_min, 
+                                            max_value=price_max, 
+                                            step=1.0)
+
+tag_input = st.sidebar.selectbox("Tag", [""] + unique_tags)
+category_input = st.sidebar.selectbox("Categoria", [""] + unique_categories)
+language_input = st.sidebar.selectbox("Idioma Suportado", [""] + unique_languages)
 
 # Botão para executar a predição
 if st.sidebar.button("Prever"):
     with st.spinner("Realizando predição..."):
-        predicted = prediction(min_price, max_price, tag, category, language)
+        predicted = prediction(min_price_input, max_price_input, tag_input, category_input, language_input)
         st.success("Predição realizada!")
         st.write("Gêneros previstos:")
         st.write(predicted)
